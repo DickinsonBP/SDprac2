@@ -1,2 +1,2 @@
 # SDprac2
-lithops version 2.3.3
+lithops==2.3.3
