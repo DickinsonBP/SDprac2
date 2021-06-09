@@ -54,7 +54,13 @@ if __name__ == '__main__':
     with FunctionExecutor(config=config) as fexec:
         future = fexec.call_async(tratar_archivo,KEY)
         result = future.result()
-        print(result['Fecha'])
+        #print(result['Fecha'])
+        for i in result.keys():
+            nombre = str(i)+'.csv'
+            with open(nombre, 'w') as f:
+                writer = csv.writer(f)
+                for k, v in result[i].items():
+                    writer.writerow([k, v])
         #dataX = list(result['Fecha'].keys())
         #dataY = list(result['Fecha'].values())
         #print('Data X: '+str(dataX)+' Data Y: '+str(dataY))
