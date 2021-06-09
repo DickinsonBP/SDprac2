@@ -25,6 +25,7 @@ config = {'lithops' : {'storage_bucket' : BUCKET},
 
 #tratar archivo
 def tratar_archivo(archivo):
+<<<<<<< HEAD
     casosFecha = {}
     casosSexo = {}
     casosUbicacion = {}
@@ -48,11 +49,23 @@ def tratar_archivo(archivo):
     casosFecha = OrderedDict(sorted(casosFecha.items()))
 
     dicc = {'Fecha':casosFecha,'Ubicacion': casosUbicacion, 'Sexo': casosSexo}    
+=======
+    dicc = {}
 
-    return dicc
+    storage = Storage()
+    archivoCsv = storage.get_object(bucket=BUCKET,key=archivo, stream=True)
+    datos = pandas.read_csv(archivoCsv)
+    #ordenadoPorfecha = datos.sort_values(by='TipusCasData')
+
+    #fecha = datos['TipusCasData'].values_counts()
+    #dicc['TipusCasData'] = fecha
+>>>>>>> f3090e4e55110be3c93ac6a8b870d85b90318689
+
+    return datos
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     result = {}
     nombresCsv = []
     with FunctionExecutor(config=config) as fexec:
@@ -76,3 +89,11 @@ if __name__ == '__main__':
 
         plt.show()
         
+=======
+    '''with FunctionExecutor(config=config) as fexec:
+        future = fexec.call_async(tratar_archivo,KEY)
+        print(future.result())'''
+    fexec = FunctionExecutor(config=config)
+    fexec.call_async(tratar_archivo,KEY)
+    print(fexec.get_result())
+>>>>>>> f3090e4e55110be3c93ac6a8b870d85b90318689
