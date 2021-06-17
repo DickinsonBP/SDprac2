@@ -12,8 +12,6 @@ import matplotlib.ticker
 from collections import OrderedDict
 import geopandas as gpd
 
-
-
 REGION = 'eu-de'
 NAMESPACE = 'anna.graciac@estudiants.urv.cat_dev'
 API_KEY = "2e728aba-560e-40f1-988b-6965b5ea4579:UDIJT2tLhxF5YKhLi00f1OWFNVN1XSpH1y9SMpJPyUZmPBSDsRMwixt6Qre2YThc"
@@ -71,20 +69,20 @@ if __name__ == '__main__':
         for i in KEY:
             future = fexec.call_async(tratar_archivo,i)
             result = future.result()
-            #print(result)
         for i in result.keys():
-            nombre = 'datos/'+str(i)+'.csv'
-            nombresCsv.append(nombre)
-            with open(nombre, 'w') as f:
-                writer = csv.writer(f)
-                for k, v in result[i].items():
-                    writer.writerow([k, v])
-            x = list(result[i].keys())
-            y = list(result[i].values())
-            plt.plot(x,y)
-            plt.ylabel('Infectados',fontsize=10)
-            plt.xticks(rotation=16)
-            plt.xlabel('Casos por '+str(i),fontsize=10)
-            plt.figure()
+            if(i not in 'Comarca'):
+                nombre = 'datos/'+str(i)+'.csv'
+                nombresCsv.append(nombre)
+                with open(nombre, 'w') as f:
+                    writer = csv.writer(f)
+                    for k, v in result[i].items():
+                        writer.writerow([k, v])
+                x = list(result[i].keys())
+                y = list(result[i].values())
+                plt.plot(x,y)
+                plt.ylabel('Infectados',fontsize=10)
+                plt.xticks(rotation=16)
+                plt.xlabel('Casos por '+str(i),fontsize=10)
+                plt.figure()
         plt.show()
 
