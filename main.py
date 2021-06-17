@@ -1,3 +1,4 @@
+from numpy import e
 import pandas
 import lithops
 from lithops.multiprocessing import Pool
@@ -33,13 +34,15 @@ def tratar_archivo(archivo):
     datos = datos.sort_values(by='TipusCasData')
 
     #añadir datos para casos por fecha
+    #primero se ordenan bien por fecha
+    datos['TipusCasData'] = pandas.to_datetime(datos['TipusCasData'], format= '%d/%m/%Y').dt.date
     for clave, valor in datos['TipusCasData'].value_counts().iteritems():
         casosFecha[clave] = valor
     
-    for valor, clave in datos['RegioSanitariaDescripcio'].value_counts().iteritems():
+    for clave, valor in datos['RegioSanitariaDescripcio'].value_counts().iteritems():
         casosUbicacion[clave] = valor
 
-    for valor, clave in datos['SexeDescripcio'].value_counts().iteritems():
+    for clave, valor in datos['SexeDescripcio'].value_counts().iteritems():
         casosSexo[clave] = valor
     
     casosFecha = OrderedDict(sorted(casosFecha.items()))
@@ -51,30 +54,25 @@ def tratar_archivo(archivo):
 
 if __name__ == '__main__':
     result = {}
+    nombresCsv = []
     with FunctionExecutor(config=config) as fexec:
         future = fexec.call_async(tratar_archivo,KEY)
         result = future.result()
         #print(result['Fecha'])
         for i in result.keys():
             nombre = str(i)+'.csv'
+            nombresCsv.append(nombre)
             with open(nombre, 'w') as f:
                 writer = csv.writer(f)
                 for k, v in result[i].items():
                     writer.writerow([k, v])
-        #dataX = list(result['Fecha'].keys())
-        #dataY = list(result['Fecha'].values())
-        #print('Data X: '+str(dataX)+' Data Y: '+str(dataY))
-        #plt.plot(dataX,dataY)
-        #plt.gcf().autofmt_xdate()
-        #plt.xticks(rotation=35)
-        #plt.ylabel('infectats por fecha')
-        #loc = matplotlib.ticker.LinearLocator(numticks = 10)
-        #plt.gca().xaxis.set_major_locator(loc)
-        #plt.show()
+            x = list(result[i].keys())
+            y = list(result[i].values())
+            plt.plot(x,y)
+            plt.ylabel('Infectados',fontsize=10)
+            plt.xticks(rotation=16)
+            plt.xlabel('Casos por '+str(i),fontsize=10)
+            plt.figure()
 
-        '''df = pandas.DataFrame.from_dict(result['Fecha'], orient="index")
-        df.to_csv('casosFecha.csv')
-        df = pandas.DataFrame.from_dict(result['Ubicacion'], orient="index")
-        df.to_csv('casosUbicacion.csv')
-        df = pandas.DataFrame.from_dict(result['Sexo'], orient="index")
-        df.to_csv('casosSexo.csv')'''
+        plt.show()
+        
