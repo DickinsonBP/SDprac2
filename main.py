@@ -1,3 +1,6 @@
+from genericpath import exists
+from logging.config import dictConfig
+import re
 from numpy import e
 import pandas
 import lithops
@@ -7,6 +10,9 @@ import csv
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 from collections import OrderedDict
+import geopandas as gpd
+
+
 
 REGION = 'eu-de'
 NAMESPACE = 'anna.graciac@estudiants.urv.cat_dev'
@@ -15,7 +21,7 @@ ACCESS_KEY_ID = '21d22b43d16f4d19b6e5ed4ff9eebaad'
 SECRET_ACCESS_KEY = '1ec74d1f3d926d28de2cd6eda3fbbb526c50dfe9840d837e' 
 BUCKET = 'covid-dataset'
 ENDPOINT = 'https://eu-gb.functions.cloud.ibm.com'
-KEY = 'covid-cat.csv'
+KEY = ['covid-cat.csv','covid-muni-sex.csv']
 
 #configuracion de lithops
 config = {'lithops' : {'storage_bucket' : BUCKET},
@@ -27,7 +33,9 @@ config = {'lithops' : {'storage_bucket' : BUCKET},
 def tratar_archivo(archivo):
     casosFecha = {}
     casosSexo = {}
-    casosUbicacion = {}
+    casosComarca = {}
+    dicc = {}
+    
     storage = Storage(config=config)
     archivoCsv = storage.get_object(bucket=BUCKET,key=archivo, stream=True)
     datos = pandas.read_csv(archivoCsv)
@@ -36,18 +44,22 @@ def tratar_archivo(archivo):
     #añadir datos para casos por fecha
     #primero se ordenan bien por fecha
     datos['TipusCasData'] = pandas.to_datetime(datos['TipusCasData'], format= '%d/%m/%Y').dt.date
-    for clave, valor in datos['TipusCasData'].value_counts().iteritems():
-        casosFecha[clave] = valor
+    if('TipusCasData' in datos):
+        for clave, valor in datos['TipusCasData'].value_counts().iteritems():
+            casosFecha[clave] = valor
     
-    for clave, valor in datos['RegioSanitariaDescripcio'].value_counts().iteritems():
-        casosUbicacion[clave] = valor
+    casosComarca = {'Comarca':'Casos'}
+    if('ComarcaDescripcio'in datos):
+        for clave, valor in datos['ComarcaDescripcio'].value_counts().iteritems():
+            casosComarca[clave] = valor
 
-    for clave, valor in datos['SexeDescripcio'].value_counts().iteritems():
-        casosSexo[clave] = valor
+    if('SexeDescripcio' in datos):
+        for clave, valor in datos['SexeDescripcio'].value_counts().iteritems():
+            casosSexo[clave] = valor
     
     casosFecha = OrderedDict(sorted(casosFecha.items()))
 
-    dicc = {'Fecha':casosFecha,'Ubicacion': casosUbicacion, 'Sexo': casosSexo}    
+    dicc = {'Fecha':casosFecha,'Comarca':casosComarca, 'Sexo': casosSexo}
 
     return dicc
 
@@ -56,11 +68,12 @@ if __name__ == '__main__':
     result = {}
     nombresCsv = []
     with FunctionExecutor(config=config) as fexec:
-        future = fexec.call_async(tratar_archivo,KEY)
-        result = future.result()
-        #print(result['Fecha'])
+        for i in KEY:
+            future = fexec.call_async(tratar_archivo,i)
+            result = future.result()
+            #print(result)
         for i in result.keys():
-            nombre = str(i)+'.csv'
+            nombre = 'datos/'+str(i)+'.csv'
             nombresCsv.append(nombre)
             with open(nombre, 'w') as f:
                 writer = csv.writer(f)
@@ -73,6 +86,5 @@ if __name__ == '__main__':
             plt.xticks(rotation=16)
             plt.xlabel('Casos por '+str(i),fontsize=10)
             plt.figure()
-
         plt.show()
-        
+
