@@ -67,19 +67,19 @@ if __name__ == '__main__':
             future = fexec.call_async(tratar_archivo,i)
             result = future.result()
         for i in result.keys():
-            if(i not in 'Comarca'):
                 nombre = 'datos/'+str(i)+'.csv'
                 nombresCsv.append(nombre)
                 with open(nombre, 'w') as f:
                     writer = csv.writer(f)
                     for k, v in result[i].items():
                         writer.writerow([k, v])
-                x = list(result[i].keys())
-                y = list(result[i].values())
-                plt.plot(x,y)
-                plt.ylabel('Infectados',fontsize=10)
-                plt.xticks(rotation=16)
-                plt.xlabel('Casos por '+str(i),fontsize=10)
-                plt.figure()
+                if(i not in 'Comarca'):
+                    x = list(result[i].keys())
+                    y = list(result[i].values())
+                    plt.plot(x,y)
+                    plt.ylabel('Infectados',fontsize=10)
+                    plt.xticks(rotation=16)
+                    plt.xlabel('Casos por '+str(i),fontsize=10)
+                    plt.figure()
         plt.show()
 
